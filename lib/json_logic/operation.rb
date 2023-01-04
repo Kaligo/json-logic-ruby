@@ -83,6 +83,8 @@ module JSONLogic
           return condition if value.nil?
           return value if condition.truthy?
         end
+
+        nil
       },
       '=='    => ->(v, d) { v[0].to_s == v[1].to_s },
       '==='   => ->(v, d) { v[0] == v[1] },
