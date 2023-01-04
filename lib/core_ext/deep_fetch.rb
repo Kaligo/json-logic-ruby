@@ -33,6 +33,13 @@ class VarCache
 
 end
 
+class Object
+  def deep_fetch(key, default = nil)
+    keys = VarCache.fetch_or_store(key)
+    keys.inject(self) { |memo, item| memo.send(item) rescue default }
+  end
+end
+
 class Hash
   def deep_fetch(key, default = nil)
     keys = VarCache.fetch_or_store(key)
