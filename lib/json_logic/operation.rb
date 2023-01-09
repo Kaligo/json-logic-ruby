@@ -16,7 +16,7 @@ module JSONLogic
             d.deep_fetch(*v)
         end
       end,
-      'missing' => ->(v, d) { v.select { |val| d.deep_fetch(val).nil? } },
+      'missing' => ->(v, d) { v.flatten.select { |val| d.deep_fetch(val).nil? } },
       'missing_some' => ->(v, d) {
         present = v[1] & d.keys
         present.size >= v[0] ? [] : LAMBDAS['missing'].call(v[1], d)
