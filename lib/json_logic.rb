@@ -22,6 +22,31 @@ module JSONLogic
     end
   end
 
+  def self.compile(logic)
+    operation, values = logic.first
+
+    Class.new do
+      define_method(:evaluate) do |data|
+
+        compiled_values = values.map do |value|
+          if value.is_a?(Hash)
+            JSONLogic.compile(value)
+          else
+            Class.new { define_method(:evaluate) { |_data| value }  }.new
+          end
+        end
+
+        evaluated_values = compiled_values.map { |item| item.evaluate(data) }
+
+        Operation::LAMBDAS[operation].call(evaluated_values, data)
+      end
+    end.new
+  end
+
+  def self.apply(logic, data)
+    compile(logic).evaluate(data)
+  end
+
   # Return a list of the non-literal data used. Eg, if the logic contains a {'var' => 'bananas'} operation, the result of
   # uses_data on this logic will be a collection containing 'bananas'
   def self.uses_data(logic)
