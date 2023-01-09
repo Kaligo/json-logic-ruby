@@ -23,22 +23,37 @@ module JSONLogic
   end
 
   def self.compile(logic)
-    return Class.new { define_method(:evaluate) { |_data| logic }  }.new unless logic.is_a?(Hash)
+    case logic
+    when Array
 
-    operation, values = logic.first
-    values = [values] unless values.is_a?(Array)
-
-    Class.new do
-      define_method(:evaluate) do |data|
-
-        compiled_values = values.map do |value|
-          JSONLogic.compile(value)
+      Class.new do
+        define_method(:evaluate) do |data|
+          logic.map { |item| JSONLogic.compile(item) }.map { |item| item.evaluate(data) }
         end
-
-        evaluated_values = compiled_values.map { |item| item.evaluate(data) }
-
-        Operation::LAMBDAS[operation].call(evaluated_values, data)
       end
+
+    when Hash
+
+      operation, values = logic.first
+      values = [values] unless values.is_a?(Array)
+
+      Class.new do
+        define_method(:evaluate) do |data|
+
+          compiled_values = values.map do |value|
+            JSONLogic.compile(value)
+          end
+
+          evaluated_values = compiled_values.map { |item| item.evaluate(data) }
+
+          Operation::LAMBDAS[operation].call(evaluated_values, data)
+        end
+      end
+
+    else
+
+      Class.new { define_method(:evaluate) { |_data| logic }  }
+
     end.new
   end
 
