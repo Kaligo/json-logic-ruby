@@ -24,6 +24,7 @@ module JSONLogic
 
   def self.compile(logic)
     operation, values = logic.first
+    values = [values] unless values.is_a?(Array)
 
     Class.new do
       define_method(:evaluate) do |data|
