@@ -23,6 +23,8 @@ module JSONLogic
   end
 
   def self.compile(logic)
+    return Class.new { define_method(:evaluate) { |_data| logic }  }.new unless logic.is_a?(Hash)
+
     operation, values = logic.first
     values = [values] unless values.is_a?(Array)
 
@@ -30,11 +32,7 @@ module JSONLogic
       define_method(:evaluate) do |data|
 
         compiled_values = values.map do |value|
-          if value.is_a?(Hash)
-            JSONLogic.compile(value)
-          else
-            Class.new { define_method(:evaluate) { |_data| value }  }.new
-          end
+          JSONLogic.compile(value)
         end
 
         evaluated_values = compiled_values.map { |item| item.evaluate(data) }
