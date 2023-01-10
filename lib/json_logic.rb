@@ -23,13 +23,13 @@ module JSONLogic
   end
 
   def self.compile(logic)
+    klass = Class.new { define_method(:to_s) { logic.to_s }  }
+
     case logic
     when Array
 
-      Class.new do
-        define_method(:evaluate) do |data|
-          logic.map { |item| JSONLogic.compile(item) }.map { |item| item.evaluate(data) }
-        end
+      klass.define_method(:evaluate) do |data|
+        logic.map { |item| JSONLogic.compile(item) }.map { |item| item.evaluate(data) }
       end
 
     when Hash
@@ -37,29 +37,28 @@ module JSONLogic
       operation, values = logic.first
       values = [values] unless values.is_a?(Array)
 
-      Class.new do
-        define_method(:evaluate) do |data|
-
-          compiled_values = values.map do |value|
-            JSONLogic.compile(value)
-          end
-
-          evaluated_values = if %w(filter some none all map).include?(operation)
-            input = compiled_values[0].evaluate(data)
-            [input, input&.map { |item| compiled_values[1].evaluate(item) }]
-          else
-            compiled_values.map { |item| item.evaluate(data) }
-          end
-
-          Operation::LAMBDAS[operation].call(evaluated_values, data)
+      klass.define_method(:evaluate) do |data|
+        compiled_values = values.map do |value|
+          JSONLogic.compile(value)
         end
+
+        evaluated_values = if %w(filter some none all map).include?(operation)
+          input = compiled_values[0].evaluate(data)
+          [input, input&.map { |item| compiled_values[1].evaluate(item) }]
+        else
+          compiled_values.map { |item| item.evaluate(data) }
+        end
+
+        Operation::LAMBDAS[operation].call(evaluated_values, data)
       end
 
     else
 
-      Class.new { define_method(:evaluate) { |_data| logic }  }
+      klass.define_method(:evaluate) { |_data| logic }
 
-    end.new
+    end
+
+    klass.new
   end
 
   def self.apply(logic, data)
