@@ -31,8 +31,8 @@ module JSONLogic
       'filter' => -> (v,d) do
         return [] unless v[0].is_a?(Array)
 
-        v[0].select do |val|
-          interpolated_block(v[1], val).truthy?
+        v[0].select.with_index do |_, index|
+          v[1][index].truthy?
         end
       end,
       'substr' => -> (v,d) do
