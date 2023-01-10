@@ -56,7 +56,7 @@ module JSONLogic
             compiled_values.map { |item| item.evaluate(data) }
           end
 
-        Operation::LAMBDAS[operation].call(evaluated_values, data)
+        Operation.perform(operation, evaluated_values, data)
       end
 
     else

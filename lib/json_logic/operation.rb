@@ -115,19 +115,11 @@ module JSONLogic
     end
 
     def self.perform(operator, values, data)
-      # If iterable, we can only pre-fill the first element, the second one must be evaluated per element.
-      # If not, we can prefill all.
-
-      if is_iterable?(operator)
-        interpolated = [JSONLogic.apply(values[0], data), *values[1..-1]]
+      if is_standard?(operator)
+        LAMBDAS[operator.to_s].call(values, data)
       else
-        interpolated = values.map { |val| JSONLogic.apply(val, data) }
+        send(operator, values, data)
       end
-
-      interpolated.flatten!(1) if interpolated.size == 1           # [['A']] => ['A']
-
-      return LAMBDAS[operator.to_s].call(interpolated, data) if is_standard?(operator)
-      send(operator, interpolated, data)
     end
 
     def self.is_standard?(operator)
