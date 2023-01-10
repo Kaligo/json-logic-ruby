@@ -65,7 +65,7 @@ module JSONLogic
       end,
       'reduce' => -> (v,d) do
         return v[2] unless v[0].is_a?(Array)
-        v[0].inject(v[2]) { |acc, val| interpolated_block(v[1], { "current": val, "accumulator": acc })}
+        v[0].inject(v[2]) { |acc, val| v[1].evaluate({ "current" => val, "accumulator" => acc })}
       end,
       'map' => -> (v,d) do
         return [] unless v[0].is_a?(Array)
