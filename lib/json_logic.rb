@@ -44,9 +44,9 @@ module JSONLogic
             JSONLogic.compile(value)
           end
 
-          evaluated_values = if %w(filter).include?(operation)
+          evaluated_values = if %w(filter some none all map).include?(operation)
             input = compiled_values[0].evaluate(data)
-            [input, input.map { |item| compiled_values[1].evaluate(item) }]
+            [input, input&.map { |item| compiled_values[1].evaluate(item) }]
           else
             compiled_values.map { |item| item.evaluate(data) }
           end

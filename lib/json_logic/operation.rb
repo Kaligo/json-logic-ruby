@@ -24,8 +24,8 @@ module JSONLogic
       'some' => -> (v,d) do
         return false unless v[0].is_a?(Array)
 
-        v[0].any? do |val|
-          interpolated_block(v[1], val).truthy?
+        v[1].any? do |item|
+          item.truthy?
         end
       end,
       'filter' => -> (v,d) do
@@ -48,22 +48,19 @@ module JSONLogic
          v[0][v[1]..limit]
       end,
       'none' => -> (v,d) do
+        return false unless v[0].is_a?(Array)
 
-        v[0].each do |val|
-          this_val_satisfies_condition = interpolated_block(v[1], val)
-          if this_val_satisfies_condition
-            return false
-          end
+        v[1].all? do |item|
+          item.falsy?
         end
-
-        return true
       end,
       'all' => -> (v,d) do
+        return false unless v[0].is_a?(Array)
         # Difference between Ruby and JSONLogic spec ruby all? with empty array is true
         return false if v[0].empty?
 
-        v[0].all? do |val|
-          interpolated_block(v[1], val)
+        v[1].all? do |item|
+          item.truthy?
         end
       end,
       'reduce' => -> (v,d) do
@@ -72,9 +69,7 @@ module JSONLogic
       end,
       'map' => -> (v,d) do
         return [] unless v[0].is_a?(Array)
-        v[0].map do |val|
-          interpolated_block(v[1], val)
-        end
+        v[1]
       end,
       'if' => ->(v, d) {
         v.each_slice(2) do |condition, value|
