@@ -104,15 +104,10 @@ module JSONLogic
       '%'     => ->(v, d) { v.map(&:to_i).reduce(:%) },
       '^'     => ->(v, d) { v.map(&:to_f).reduce(:**) },
       'merge' => ->(v, d) { v.flatten },
-      'in'    => ->(v, d) { interpolated_block(v[1], d).include? v[0] },
+      'in'    => ->(v, d) { v[1].include?(v[0]) },
       'cat'   => ->(v, d) { v.map(&:to_s).join },
       'log'   => ->(v, d) { puts v }
     }
-
-    def self.interpolated_block(block, data)
-      # Make sure the empty var is there to be used in iterator
-      JSONLogic.apply(block, data.is_a?(Hash) ? data.merge({"": data}) : { "": data })
-    end
 
     def self.perform(operator, values, data)
       if is_standard?(operator)
@@ -124,12 +119,6 @@ module JSONLogic
 
     def self.is_standard?(operator)
       LAMBDAS.key?(operator.to_s)
-    end
-
-    # Determine if values associated with operator need to be re-interpreted for each iteration(ie some kind of iterator)
-    # or if values can just be evaluated before passing in.
-    def self.is_iterable?(operator)
-      ['filter', 'some', 'all', 'none', 'in', 'map', 'reduce'].include?(operator.to_s)
     end
 
     def self.add_operation(operator, function)

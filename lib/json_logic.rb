@@ -1,26 +1,7 @@
 require 'core_ext/deep_fetch'
-require 'core_ext/stringify_keys'
 require 'json_logic/truthy'
 require 'json_logic/operation'
 module JSONLogic
-  def self.apply(logic, data)
-    if logic.is_a?(Array)
-      logic.map do |val|
-        apply(val, data)
-      end
-    elsif !logic.is_a?(Hash)
-      # Pass-thru
-      logic
-    else
-      if data.is_a?(Hash)
-        data = data.stringify_keys
-      end
-      data ||= {}
-
-      operator, values = operator_and_values_from_logic(logic)
-      Operation.perform(operator, values, data)
-    end
-  end
 
   def self.compile(logic)
     klass = Class.new { define_method(:to_s) { logic.to_s }  }
