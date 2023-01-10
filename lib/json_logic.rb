@@ -28,8 +28,10 @@ module JSONLogic
     case logic
     when Array
 
+      compiled_values = logic.map { |item| JSONLogic.compile(item) }
+
       klass.define_method(:evaluate) do |data|
-        logic.map { |item| JSONLogic.compile(item) }.map { |item| item.evaluate(data) }
+        compiled_values.map { |item| item.evaluate(data) }
       end
 
     when Hash
@@ -37,11 +39,11 @@ module JSONLogic
       operation, values = logic.first
       values = [values] unless values.is_a?(Array)
 
-      klass.define_method(:evaluate) do |data|
-        compiled_values = values.map do |value|
-          JSONLogic.compile(value)
-        end
+      compiled_values = values.map do |value|
+        JSONLogic.compile(value)
+      end
 
+      klass.define_method(:evaluate) do |data|
         evaluated_values =
           case operation
           when 'filter', 'some', 'none', 'all', 'map'
