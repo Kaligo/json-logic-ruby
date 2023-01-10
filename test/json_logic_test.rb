@@ -133,11 +133,11 @@ class JSONLogicTest < Minitest::Test
     )
 
     provided_data_missing_y = {
-      'x' => 3,
+      x: 3,
     }
 
     provided_data_missing_x = {
-      'y' => 4,
+      y: 4,
     }
 
     assert_equal ["y"], JSONLogic.apply({"missing": [vars]}, provided_data_missing_y)
