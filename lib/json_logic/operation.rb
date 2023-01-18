@@ -13,10 +13,16 @@ module JSONLogic
             d
           end
         else
-            d.deep_fetch(*v)
+          keys = VarCache.fetch_or_store(v[0])
+          d.deep_fetch(keys, v[1])
         end
       end,
-      'missing' => ->(v, d) { v.flatten.select { |val| d.deep_fetch(val).nil? } },
+      'missing' => ->(v, d) do
+        v.flatten.select do |val|
+          keys = VarCache.fetch_or_store(val)
+          d.deep_fetch(keys).nil?
+        end
+      end,
       'missing_some' => ->(v, d) {
         present = v[1] & d.keys
         present.size >= v[0] ? [] : LAMBDAS['missing'].call(v[1], d)

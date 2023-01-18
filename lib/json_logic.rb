@@ -1,6 +1,8 @@
 require 'core_ext/deep_fetch'
 require 'json_logic/truthy'
 require 'json_logic/operation'
+require 'json_logic/var_cache'
+
 module JSONLogic
 
   def self.compile(logic)
