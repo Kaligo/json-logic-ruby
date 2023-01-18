@@ -36,22 +36,21 @@ end
 class Object
   def deep_fetch(key, default = nil)
     keys = VarCache.fetch_or_store(key)
-    keys.inject(self) { |memo, item| memo.send(item) rescue default }
-  end
-end
 
-class Hash
-  def deep_fetch(key, default = nil)
-    keys = VarCache.fetch_or_store(key)
-    value = dig(*keys) rescue default
-    value.nil? ? default : value  # value can be false (Boolean)
-  end
-end
+    value = keys.inject(self) do |memo, item|
+      case memo
+      when Hash
+        memo[item]
+      when Array
+        memo[item.to_i]
+      else
+        memo.send(item)
+      end
 
-class Array
-  def deep_fetch(index, default = nil)
-    indexes = VarCache.fetch_or_store(index).map(&:to_i)
-    value = dig(*indexes) rescue default
-    value.nil? ? default : value  # value can be false (Boolean)
+      rescue
+        return default
+    end
+
+    value.nil? ? default : value
   end
 end
