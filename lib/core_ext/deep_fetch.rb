@@ -6,10 +6,13 @@ class Object
     when 0
       self
     when 1
-      self.send(keys.first) rescue default
+      self.send(keys.first)
     else
-      deep_fetch(keys[1..-1], default)
+      self.send(keys.first).deep_fetch(keys[1..-1], default)
     end
+
+    rescue
+      default
   end
 end
 
