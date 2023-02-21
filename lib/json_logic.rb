@@ -1,27 +1,60 @@
 require 'core_ext/deep_fetch'
-require 'core_ext/stringify_keys'
 require 'json_logic/truthy'
 require 'json_logic/operation'
 require 'json_logic/var_cache'
 
 module JSONLogic
-  def self.apply(logic, data)
-    if logic.is_a?(Array)
-      logic.map do |val|
-        apply(val, data)
-      end
-    elsif !logic.is_a?(Hash)
-      # Pass-thru
-      logic
-    else
-      if data.is_a?(Hash)
-        data = data.stringify_keys
-      end
-      data ||= {}
 
-      operator, values = operator_and_values_from_logic(logic)
-      Operation.perform(operator, values, data)
+  def self.compile(logic)
+    klass = Class.new { define_method(:to_s) { logic.to_s }  }
+
+    case logic
+    when Array
+
+      compiled_values = logic.map { |item| JSONLogic.compile(item) }
+
+      klass.define_method(:evaluate) do |data|
+        compiled_values.map { |item| item.evaluate(data) }
+      end
+
+    when Hash
+
+      operation, values = logic.first
+      values = [values] unless values.is_a?(Array)
+
+      compiled_values = values.map do |value|
+        JSONLogic.compile(value)
+      end
+
+      klass.define_method(:evaluate) do |data|
+        evaluated_values =
+          case operation
+          when 'filter', 'some', 'none', 'all', 'map'
+            input = compiled_values[0].evaluate(data)
+            params = input&.map { |item| compiled_values[1].evaluate(item) }
+            [input, params]
+          when 'reduce'
+            input = compiled_values[0].evaluate(data)
+            accumulator = compiled_values[2].evaluate(data)
+            [input, compiled_values[1], accumulator]
+          else
+            compiled_values.map { |item| item.evaluate(data) }
+          end
+
+        Operation.perform(operation, evaluated_values, data)
+      end
+
+    else
+
+      klass.define_method(:evaluate) { |_data| logic }
+
     end
+
+    klass.new
+  end
+
+  def self.apply(logic, data)
+    compile(logic).evaluate(data)
   end
 
   # Return a list of the non-literal data used. Eg, if the logic contains a {'var' => 'bananas'} operation, the result of

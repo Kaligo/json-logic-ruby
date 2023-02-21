@@ -18,7 +18,11 @@ end
 
 class Hash
   def deep_fetch(keys, default = nil)
-    value = dig(*keys) rescue default
+    value = keys.inject(self) do |memo, item|
+      memo.key?(item) ? memo[item] : memo[item.to_sym]
+    rescue
+      default
+    end
     value.nil? ? default : value  # value can be false (Boolean)
   end
 end
