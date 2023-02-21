@@ -4,21 +4,25 @@ module JSONLogic
   class Operation
     LAMBDAS = {
       'var' => ->(v, d) do
-        if !(d.is_a?(Hash) || d.is_a?(Array))
+        if v.empty?
           d
-        else
-          if v == [JSONLogic::ITERABLE_KEY]
-            if d.is_a?(Array)
-              d
-            else
-              d[JSONLogic::ITERABLE_KEY]
-            end
+        elsif v == [JSONLogic::ITERABLE_KEY]
+          if d.is_a?(Hash)
+            d[JSONLogic::ITERABLE_KEY]
           else
-            d.deep_fetch(*v)
+            d
           end
+        else
+          keys = VarCache.fetch_or_store(v[0])
+          d.deep_fetch(keys, v[1])
         end
       end,
-      'missing' => ->(v, d) { v.select { |val| d.deep_fetch(val).nil? } },
+      'missing' => ->(v, d) do
+        v.select do |val|
+          keys = VarCache.fetch_or_store(val)
+          d.deep_fetch(keys).nil?
+        end
+      end,
       'missing_some' => ->(v, d) {
         present = v[1] & d.keys
         present.size >= v[0] ? [] : LAMBDAS['missing'].call(v[1], d)

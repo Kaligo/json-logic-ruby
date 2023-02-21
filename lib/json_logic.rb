@@ -2,6 +2,8 @@ require 'core_ext/deep_fetch'
 require 'core_ext/stringify_keys'
 require 'json_logic/truthy'
 require 'json_logic/operation'
+require 'json_logic/var_cache'
+
 module JSONLogic
   def self.apply(logic, data)
     if logic.is_a?(Array)
