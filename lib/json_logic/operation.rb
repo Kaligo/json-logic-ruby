@@ -93,8 +93,8 @@ module JSONLogic
       '!!'    => ->(v, d) { v[0].truthy? },
       'or'    => ->(v, d) { v.find(&:truthy?) || v.last },
       'and'   => ->(v, d) {
-        result = v.find(&:falsy?)
-        result.nil? ? v.last : result
+        idx = v.index(&:falsy?)
+        idx.nil? ? v.last : v[idx]
       },
       '?:'    => ->(v, d) { LAMBDAS['if'].call(v, d) },
       '>'     => ->(v, d) { v.map(&:to_f).each_cons(2).all? { |i, j| i > j } },
