@@ -78,9 +78,13 @@ module JSONLogic
         v[1]
       end,
       'if' => ->(v, d) {
-        v.each_slice(2) do |condition, value|
+        i = 0
+        while i < v.length do
+          condition = v[i]
+          value = v[i+1]
           return condition if value.nil?
           return value if condition.truthy?
+          i += 2
         end
 
         nil
